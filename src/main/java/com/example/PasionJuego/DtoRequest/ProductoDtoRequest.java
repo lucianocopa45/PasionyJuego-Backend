@@ -2,12 +2,12 @@ package com.example.PasionJuego.DtoRequest;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.*;
-import lombok.*;
-
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
-public class ProductoDtoRequest {
+public class TestDto {
     @Schema(description = "Descripción del producto", example = "Notebook Dell Inspiron")
     @NotBlank(message = "La descripción no puede estar vacía")
     @NotNull(message = "La descripción no puede estar vacía")
