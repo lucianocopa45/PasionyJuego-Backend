@@ -5,9 +5,9 @@ import com.example.PasionJuego.DtoResponse.ProductoDtoResponse;
 import com.example.PasionJuego.Entity.Categoria;
 import com.example.PasionJuego.Entity.Producto;
 import com.example.PasionJuego.Excepciones.CategoriaNotFoundException;
+import com.example.PasionJuego.Excepciones.ProductoNotFoundException;
 import com.example.PasionJuego.Repository.CategoriaRepository;
 import com.example.PasionJuego.Repository.ProductoRepository;
-import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -40,9 +40,10 @@ public class ProductoService {
     }
 
     public ProductoDtoResponse createProducto(ProductoDtoRequest dto) {
-        Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
+
+        Categoria categoria = categoriaRepository.findById(dto.getId_categoria())
                 .orElseThrow(() -> new CategoriaNotFoundException(
-                        "La categoría con el ID: " + dto.getCategoriaId() + " NO existe"
+                        "La categoría con el ID: " + dto.getId_categoria() + " NO existe"
                 ));
 
         Producto producto = Producto.builder()
@@ -67,7 +68,7 @@ public class ProductoService {
     }
 
     public ProductoDtoResponse getByIdProducto(Long idProducto) {
-        try {
+
             Producto record = productoRepository.findById(idProducto).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El producto con el ID " + idProducto + " no se ha encontrado"));
 
             ProductoDtoResponse response = new ProductoDtoResponse();
@@ -80,42 +81,47 @@ public class ProductoService {
 
             return response;
 
-        } catch (EntityNotFoundException e){
-            throw new ResponseStatusException(HttpStatus.NOT_FOUND, e.getMessage());
-        }
     }
 
     public ProductoDtoResponse updateProducto(Long idProducto, ProductoDtoRequest dto) {
-        try {
-            Producto record = productoRepository.findById(idProducto).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "El producto con el ID " + idProducto + " no se ha encontrado"));
-            Categoria categoria = categoriaRepository.findById(dto.getCategoriaId())
-                    .orElseThrow(() -> new CategoriaNotFoundException(
-                            "La categoría con el ID: " + dto.getCategoriaId() + " NO existe"
-                    ));
-            //Producto response = new Producto();
-            record.setDescripcion(dto.getDescripcion());
-            record.setPrecio(dto.getPrecio());
-            record.setImagenUrl(dto.getImagenUrl());
-            record.setStock(dto.getStock());
-            record.setCategoria(categoria);
+        Producto record = productoRepository.findById(idProducto).orElseThrow(()-> new ResponseStatusException(HttpStatus.NOT_FOUND, "El producto con el ID " + idProducto + " no se ha encontrado"));
+        Categoria categoria = categoriaRepository.findById(dto.getId_categoria())
+                .orElseThrow(() -> new CategoriaNotFoundException(
+                        "La categoría con el ID: " + dto.getId_categoria() + " NO existe"
+                ));
+        record.setDescripcion(dto.getDescripcion());
+        record.setPrecio(dto.getPrecio());
+        record.setImagenUrl(dto.getImagenUrl());
+        record.setStock(dto.getStock());
+        record.setCategoria(categoria);
 
-            productoRepository.save(record);
+        productoRepository.save(record);
 
-            ProductoDtoResponse response = new ProductoDtoResponse();
-            response.setId_producto(record.getId_producto());
-            response.setDescripcion(record.getDescripcion());
-            response.setPrecio(record.getPrecio());
-            response.setImagenUrl(record.getImagenUrl());
-            response.setStock(record.getStock());
-            response.setId_categoria(categoria.getId_categoria());
+        ProductoDtoResponse response = new ProductoDtoResponse();
+        response.setId_producto(record.getId_producto());
+        response.setDescripcion(record.getDescripcion());
+        response.setPrecio(record.getPrecio());
+        response.setImagenUrl(record.getImagenUrl());
+        response.setStock(record.getStock());
+        response.setId_categoria(categoria.getId_categoria());
 
-            return response;
-        } catch (Exception e){
-            System.err.println("Error al actualizar producto: " + e.getMessage());
-            e.printStackTrace();
+        return response;
+    }
 
-            // Opcional: puedes lanzar una excepción personalizada o devolver null o un DTO con error
-            throw new RuntimeException("Error interno al actualizar producto, detalle: " + e.getMessage());
-        }
+    public ProductoDtoResponse deleteProducto(Long idProducto) {
+        Producto producto = productoRepository.findById(idProducto)
+                .orElseThrow(() -> new ProductoNotFoundException("Producto con el ID: " + idProducto + " no encontrado"));
+
+        productoRepository.delete(producto);
+
+        ProductoDtoResponse dto = new ProductoDtoResponse();
+        dto.setId_producto(producto.getId_producto());
+        dto.setDescripcion(producto.getDescripcion());
+        dto.setPrecio(producto.getPrecio());
+        dto.setImagenUrl(producto.getImagenUrl());
+        dto.setStock(producto.getStock());
+        dto.setId_categoria(producto.getCategoria() != null ? producto.getCategoria().getId_categoria() : null);
+
+        return dto;
     }
 }

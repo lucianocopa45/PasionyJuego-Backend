@@ -9,7 +9,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-@ToString(exclude = "categoria")
+//@ToString(exclude = "categoria")
 public class Producto {
 
     @Id
